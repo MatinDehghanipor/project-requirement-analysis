@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>سناریوهای مرزی استخراج جدول</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap">
+<style>
+/* Layout: sticky progress bar, a briefing block (project, flow, glossary), then one card per scenario: situation, sample data, question, explained options, note */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface-2: #eef2f5;
+  --fg: #1b2330;
+  --muted: #5a6677;
+  --line: #d9e0e7;
+  --accent: #0e6a6e;
+  --accent-soft: #dcf0f0;
+  --accent-fg: #ffffff;
+  --warn: #8a5a00;
+  --warn-soft: #fbefd2;
+  --font: "Vazirmatn", "Tahoma", "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11171e; --surface: #19212b; --surface-2: #212b37; --fg: #e6ebf1; --muted: #9aa7b8;
+    --line: #2d3948; --accent: #5cc4c8; --accent-soft: #17383b; --accent-fg: #0c1a1b;
+    --warn: #f0c46a; --warn-soft: #3a2f14; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11171e; --surface: #19212b; --surface-2: #212b37; --fg: #e6ebf1; --muted: #9aa7b8;
+  --line: #2d3948; --accent: #5cc4c8; --accent-soft: #17383b; --accent-fg: #0c1a1b;
+  --warn: #f0c46a; --warn-soft: #3a2f14; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { direction: rtl; text-align: start; }
+bdi { unicode-bidi: isolate; font-family: var(--mono); font-size: .92em; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 15px; line-height: 1.9;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 56px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.wrap { max-width: 880px; margin: 0 auto; }
+header.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--surface);
+  border-bottom: 1px solid var(--line); margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+}
+.top-in { max-width: 880px; margin: 0 auto; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.top-in h1 { font-size: 16px; margin: 0; font-weight: 700; flex: 1 1 200px; min-width: 0; }
+.prog { flex: 1 1 220px; display: flex; align-items: center; gap: 10px; min-width: 0; }
+.bar { flex: 1; height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s; }
+.prog span { font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.brief { margin-top: 20px; display: grid; gap: 14px; }
+details.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px max(16px, 4%); }
+details.card > summary { cursor: pointer; font-weight: 700; font-size: 17px; padding: 12px 0; list-style-position: inside; }
+details.card[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+details.card p { margin: 0 0 10px; max-width: 72ch; }
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 12px 0; padding: 0; list-style: none; counter-reset: st; }
+.flow li { background: var(--surface-2); border-radius: 10px; padding: 10px 14px; font-size: 14px; counter-increment: st; }
+.flow li::before { content: counter(st, persian); display: block; color: var(--accent); font-weight: 700; font-size: 13px; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 10px 0; }
+.box { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; background: var(--bg); }
+.box b { color: var(--accent); }
+.ann { font-size: 13.5px; color: var(--muted); margin-top: 6px; }
+dl.gl { margin: 0 0 12px; display: grid; gap: 8px; }
+dl.gl div { display: grid; grid-template-columns: minmax(110px, 160px) 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+dl.gl div:last-child { border-bottom: 0; }
+dl.gl dt { font-weight: 700; color: var(--accent); }
+dl.gl dd { margin: 0; min-width: 0; }
+@media (max-width: 520px) { dl.gl div { grid-template-columns: 1fr; gap: 2px; } }
+ol.how { margin: 0 0 10px; padding-inline-start: 22px; }
+ol.how li { margin-bottom: 6px; }
+
+.legend { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0 0; }
+.chip { display: inline-flex; align-items: center; font-size: 12px; padding: 1px 10px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); }
+.chip.prio { background: var(--warn-soft); color: var(--warn); border-color: transparent; font-weight: 500; }
+.nav { display: flex; gap: 6px; flex-wrap: wrap; margin: 14px 0 6px; }
+.nav a {
+  width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px; text-decoration: none;
+  color: var(--fg); border: 1px solid var(--line); background: var(--surface); font-size: 13px; font-variant-numeric: tabular-nums;
+}
+.nav a.done { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.nav a:focus-visible, button:focus-visible, textarea:focus-visible, summary:focus-visible, input:focus-visible + .opt-body { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+section.sc { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; margin-top: 18px; padding: 20px max(16px, 4%); scroll-margin-top: 76px; }
+.sc-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.sc-no { font-size: 13px; color: var(--accent); font-weight: 700; }
+.sc h2 { font-size: 18px; margin: 0; font-weight: 700; flex: 1 1 200px; min-width: 0; text-wrap: balance; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 12px; }
+.sit { margin: 0 0 12px; max-width: 72ch; }
+.sit b, .lbl { color: var(--accent); font-weight: 700; }
+.lbl { font-size: 13px; margin: 12px 0 4px; display: block; }
+.tbl-wrap { overflow-x: auto; margin: 6px 0 12px; border: 1px solid var(--line); border-radius: 8px; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; direction: ltr; text-align: left; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { background: var(--surface-2); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+.tbl-wrap.sm table { font-size: 12.5px; }
+.tbl-wrap.sm th, .tbl-wrap.sm td { padding: 4px 10px; }
+ul.src { list-style: none; margin: 6px 0 12px; padding: 0; display: grid; gap: 8px; }
+ul.src li { background: var(--surface-2); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+ul.src b { font-weight: 700; color: var(--accent); }
+.ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; font-family: var(--mono); font-size: 13px; }
+.q { font-weight: 700; margin: 16px 0 8px; text-wrap: balance; font-size: 16px; }
+.glabel { margin: 14px 0 6px; font-size: 14px; color: var(--muted); font-weight: 500; }
+.opts { display: grid; gap: 10px; }
+.opt { display: block; cursor: pointer; }
+.opt input { position: absolute; opacity: 0; pointer-events: none; }
+.opt-body { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); transition: border-color .15s, background .15s; }
+.opt:hover .opt-body { border-color: var(--accent); }
+.opt input:checked + .opt-body { border-color: var(--accent); background: var(--accent-soft); }
+.k { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; border: 1px solid var(--line); background: var(--surface); font-family: var(--mono); }
+.opt input:checked + .opt-body .k { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.opt-text { min-width: 0; flex: 1; }
+.ot-title { font-weight: 700; display: block; }
+.ot-d { display: block; margin-top: 2px; }
+.ot-note { display: block; margin-top: 6px; font-size: 13.5px; color: var(--muted); }
+.ot-note::before { content: "نکته: "; font-weight: 500; color: var(--fg); }
+.opt-text .tbl-wrap { margin: 8px 0 4px; background: var(--surface); }
+.opt-x .opt-body { border-style: dashed; padding: 8px 14px; }
+.opt-x .ot-title { font-weight: 500; color: var(--muted); }
+.reveals { margin-top: 16px; font-size: 13.5px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 10px; }
+.reveals b { color: var(--fg); font-weight: 500; }
+label.note { display: block; margin-top: 14px; font-size: 13px; color: var(--muted); }
+textarea { width: 100%; min-height: 64px; margin-top: 4px; resize: vertical; font: inherit; font-size: 14px; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+.clear { margin-top: 8px; background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; text-decoration: underline; padding: 4px 0; }
+.sum { margin-top: 28px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px max(16px, 4%); }
+.sum h2 { margin: 0 0 4px; font-size: 18px; }
+.sum p { margin: 0 0 12px; color: var(--muted); }
+.btns { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+button.btn { font: inherit; font-size: 14px; padding: 8px 18px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-fg); cursor: pointer; }
+button.btn.ghost { background: transparent; color: var(--accent); }
+button.btn.danger { border-color: var(--warn); color: var(--warn); background: transparent; }
+#out { min-height: 220px; margin-top: 14px; font-family: var(--font); line-height: 1.9; }
+#msg { font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (max-width: 520px) { th, td { padding: 6px 8px; } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top"><div class="top-in">
+    <h1>سناریوهای مرزی استخراج جدول</h1>
+    <div class="prog"><div class="bar"><i id="barfill"></i></div><span id="progtxt">۰ از ۱۲</span></div>
+  </div></header>
+
+  <div class="brief">
+    <details class="card" open>
+      <summary>این جلسه چطور پیش می‌رود؟</summary>
+      <p>ما در حال ساخت قابلیتی هستیم که از روی چند مقاله‌ی PDF یک جدول می‌سازد. برای نوشتن نرم‌افزار، برای هر موقعیت یک قاعده‌ی دقیق لازم داریم. اگر قاعده‌ای نباشد، نرم‌افزار حدس می‌زند و ممکن است خلاف انتظار شما رفتار کند. این صفحه ۱۲ موقعیت واقعی را با داده‌ی ساختگی نشان می‌دهد و می‌پرسد در هر کدام چه رفتاری می‌خواهید.</p>
+      <ol class="how">
+        <li>موقعیت و داده‌ی نمونه‌ی هر سناریو را بخوانید.</li>
+        <li>گزینه‌ها را ببینید. هر گزینه توضیح می‌دهد نرم‌افزار چه می‌کند و جدول خروجی چه شکلی می‌شود.</li>
+        <li>یک گزینه را انتخاب کنید. جواب درست یا غلط نداریم؛ می‌خواهیم بدانیم شما چه می‌خواهید.</li>
+        <li>اگر هیچ‌کدام مناسب نبود یا ترکیبی از چند گزینه می‌خواهید، در کادر یادداشت بنویسید.</li>
+        <li>اگر هنوز نمی‌دانید، «نیاز به بررسی بیشتر» را انتخاب کنید تا در جلسه‌ی بعد بررسی شود.</li>
+      </ol>
+    </details>
+
+    <details class="card" open>
+      <summary>پروژه در یک نگاه</summary>
+      <p>کاربر (مثلاً یک پژوهشگر) چند مقاله‌ی علمی را در سیستم بارگذاری می‌کند. سیستم از ابتدا یک جدول ثابت نمی‌سازد؛ کاربر خودش می‌گوید چه جدولی می‌خواهد. مراحل کار:</p>
+      <ol class="flow">
+        <li><b>کاربر جدول را توضیح می‌دهد.</b> مثلاً «برای هر شیشه، ترکیب، شرایط تبادل یونی و استحکامش را می‌خواهم.»</li>
+        <li><b>سیستم پیش‌نویس می‌سازد.</b> فهرست ستون‌ها و معنای هر ستون، و کاربر آن را ویرایش و تأیید می‌کند.</li>
+        <li><b>سیستم مقاله‌ها را می‌خواند.</b> ردیف‌ها را پیدا می‌کند و مقدار هر سلول را از متن، جدول‌ها و بخش‌های مختلف مقاله‌ها بیرون می‌کشد.</li>
+        <li><b>جدول نهایی ساخته می‌شود.</b> کاربر آن را بازبینی می‌کند و خروجی (مثلاً CSV) می‌گیرد.</li>
+      </ol>
+      <p>دو تصمیم هسته‌ی کار هستند و بیشتر سناریوها درباره‌ی آن‌هاند:</p>
+      <div class="two">
+        <div class="box"><b>تعریف جدول:</b> ستون‌ها چیستند، هر ستون دقیقاً چه چیزی را اندازه می‌گیرد، چه نوع مقداری دارد (عدد، متن) و با چه واحدی.</div>
+        <div class="box"><b>تعریف ردیف:</b> هر خط جدول دقیقاً چه چیزی است و چه زمانی دو خط «یک ردیف» حساب می‌شوند.</div>
+      </div>
+      <span class="lbl">مثال: یک ردیف یعنی چه؟</span>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Glass</th><th>Na₂O (wt%)</th><th>Ion</th><th>T (°C)</th><th>Time (min)</th><th>CS (MPa)</th></tr></thead>
+        <tbody><tr><td>G1</td><td>14</td><td>KNO₃</td><td>430</td><td>240</td><td>610</td></tr>
+        <tr><td>G1</td><td>14</td><td>KNO₃</td><td>400</td><td>240</td><td>520</td></tr></tbody>
+      </table></div>
+      <p class="ann">در جدول مرجع پروژه هر ردیف یک «ترکیب شیشه × شرایط تبادل یونی» است. این دو ردیف ترکیب یکسان ولی دمای متفاوت دارند، پس دو ردیف جدا هستند. به مجموعه‌ی مشخصاتی که تعیین می‌کند دو ردیف یکی‌اند یا نه (مثلاً ترکیب، یون، دما و زمان) «هویت ردیف» می‌گوییم.</p>
+    </details>
+
+    <details class="card" open>
+      <summary>واژه‌نامه‌ی کوتاه</summary>
+      <dl class="gl">
+        <div><dt>تبادل یونی</dt><dd>شیشه را در نمک مذاب (مثل KNO₃ یا NaNO₃) می‌گذارند تا یون‌های سطح آن جابه‌جا شوند و شیشه مقاوم‌تر شود. دما و زمان این فرایند از مشخصات اصلی هر آزمایش است.</dd></div>
+        <div><dt>CS</dt><dd>تنش فشاری سطح. عددی (معمولاً به MPa) که نشان می‌دهد سطح شیشه بعد از تبادل چقدر مقاوم شده است.</dd></div>
+        <div><dt>DOL</dt><dd>عمق لایه‌ای از شیشه که تبادل در آن اتفاق افتاده، به میکرومتر (µm).</dd></div>
+        <div><dt>wt% و mol%</dt><dd>درصد وزنی و درصد مولی. دو روش گزارش سهم هر اکسید (SiO₂، Na₂O و ...) در ترکیب شیشه. تبدیل این دو به هم محاسبه‌ی شیمیایی می‌خواهد.</dd></div>
+        <div><dt>MPa و GPa</dt><dd>واحد فشار. ۱ GPa برابر ۱۰۰۰ MPa است.</dd></div>
+        <div><dt>°C و K</dt><dd>دمای سانتی‌گراد و کلوین. ۷۰۳ K حدود ۴۳۰ °C است.</dd></div>
+        <div><dt>Methods / Experimental</dt><dd>بخش‌هایی از مقاله که روش آزمایش و ترکیب نمونه‌ها را شرح می‌دهند. اغلب شرایط تبادل در همین بخش‌ها آمده و نه در جدول نتایج.</dd></div>
+        <div><dt>P1 تا P5، G1، Glass A</dt><dd>نام‌های ساختگی برای مقاله‌ها و نمونه‌های شیشه در این سناریوها.</dd></div>
+      </dl>
+    </details>
+  </div>
+
+  <div class="legend">
+    <span class="chip prio">اولویت بالا</span>
+    <span class="chip">تعریف جدول</span>
+    <span class="chip">تعریف ردیف</span>
+  </div>
+  <nav class="nav" id="nav" aria-label="پرش به سناریو"></nav>
+
+  <main id="list"></main>
+
+  <div class="sum">
+    <h2>خلاصه‌ی تصمیم‌ها</h2>
+    <p>خلاصه را بساز، کپی کن و به‌عنوان نیازمندی ثبت کن.</p>
+    <div class="btns">
+      <button class="btn" id="gen" type="button">ساخت خلاصه</button>
+      <button class="btn ghost" id="copy" type="button">کپی خلاصه</button>
+      <button class="btn danger" id="reset" type="button">پاک‌کردن همه‌ی پاسخ‌ها</button>
+      <span id="msg" role="status"></span>
+    </div>
+    <textarea id="out" readonly placeholder="بعد از زدن «ساخت خلاصه» اینجا نمایش داده می‌شود."></textarea>
+  </div>
+</div>
+
+<script>
+const T = 'تعریف جدول', R = 'تعریف ردیف';
+const o = (t, d, note, tbl) => ({ t, d, note, tbl });
+
+const S = [
+ /* 1 */
+ { title:'چند شرایط در یک ردیفِ جدول مقاله', prio:true, tags:[R,T],
+   sit:'بسیاری از مقاله‌ها نتیجه‌ی یک شیشه در چند دمای مختلف را در یک خط جدول می‌آورند. ولی خروجی ما باید قالب مشخصی داشته باشد. تصمیم اینکه هر دما ستون جدا باشد یا ردیف جدا، شکل کل جدول را عوض می‌کند.',
+   table:{ head:['Glass','CS @ 400°C','CS @ 430°C','CS @ 460°C'], rows:[['G1',520,610,580],['G2',480,575,540]], cap:'جدول ۲ مقاله‌ی P1 (همه‌ی نمونه‌ها در KNO₃ و ۴ ساعت)' },
+   q:'خروجی نهایی چند ردیف باشد و دماها کجا بروند؟',
+   groups:[{ opts:[
+     o('دو ردیف؛ هر دما یک ستون', 'هر شیشه یک خط می‌گیرد و برای هر دما یک ستون جدا ساخته می‌شود.',
+       'شبیه خود مقاله است و خواندنش ساده است. ولی اگر مقاله‌ی دیگری دمای ۴۵۰ داشته باشد باید ستون جدید ساخت و ادغام چند مقاله سخت می‌شود.',
+       { head:['Glass','CS_400','CS_430','CS_460'], rows:[['G1',520,610,580],['G2',480,575,540]] }),
+     o('شش ردیف؛ دما یک ستون جدا', 'هر ترکیب شیشه × دما یک ردیف می‌شود. یک ستون CS و یک ستون temperature داریم.',
+       'هر خط یک آزمایش کامل است و برای تحلیل و ادغام مقاله‌ها مناسب‌تر است. ولی با ظاهر جدول اصلی مقاله فرق دارد و نام شیشه تکرار می‌شود.',
+       { head:['Glass','T (°C)','CS (MPa)'], rows:[['G1',400,520],['G1',430,610],['G1',460,580],['G2',400,480],['G2',430,575],['G2',460,540]] }),
+     o('هر دو شکل، به انتخاب کاربر', 'کاربر هنگام تعریف جدول می‌گوید کدام شکل را می‌خواهد.',
+       'انعطاف‌پذیرتر است ولی زمان ساخت بیشتر می‌شود و باید تعیین کنیم پیش‌فرض کدام باشد.') ]}],
+   reveals:'«هر ردیف دقیقاً چیست» (یک شیشه یا یک آزمایش) و اینکه شرایط آزمایش ستون جدا و بخشی از هویت ردیف است یا فقط نام ستون.' },
+
+ /* 2 */
+ { title:'نام اختصاری در جدول، ترکیب کامل در متن', tags:[R,T],
+   sit:'گاهی جدول نتایج فقط نام اختصاری شیشه (Glass A) را می‌آورد، ولی ترکیب و شرایط تبادل آن در بخش‌های دیگر همان مقاله نوشته شده است. اگر ردیف فقط از روی جدول ساخته شود، ستون‌های ترکیب و شرایط خالی می‌مانند.',
+   bullets:[['جدول ۳','<span class="ltr">Glass A: CS = 700 MPa, DOL = 45 µm</span>'],
+            ['بخش Experimental','<span class="ltr">Glass A (wt%): SiO₂ 60, Al₂O₃ 17, Na₂O 14, MgO 5, other 4</span>'],
+            ['بخش Methods','<span class="ltr">420°C, 8 h, 100% KNO₃</span>']],
+   q:'ستون‌های ترکیب و شرایط برای ردیف Glass A پر شوند؟',
+   groups:[{ opts:[
+     o('پر شود؛ اطلاعات بخش‌های مختلف سند به یک ردیف وصل شود', 'سیستم می‌فهمد Glass A همان شیشه‌ای است که ترکیبش در Experimental آمده و همه را در یک ردیف جمع می‌کند.',
+       'جدول کامل‌تر می‌شود ولی احتمال اشتباه در وصل‌کردن اطلاعات بیشتر است، مثلاً اگر دو شیشه نام مشابه داشته باشند.',
+       { head:['Glass','SiO₂','Al₂O₃','Na₂O','MgO','T','Time (h)','CS','DOL'], rows:[['Glass A',60,17,14,5,420,8,700,45]] }),
+     o('فقط آنچه در همان جدول آمده', 'اطلاعات بخش‌های دیگر استفاده نمی‌شود و سلول‌های بدون منبع در جدول خالی می‌مانند.',
+       'مطمئن‌ترین حالت است ولی بسیاری از ستون‌ها خالی می‌مانند و کاربر باید خودش پر کند.',
+       { head:['Glass','SiO₂','Al₂O₃','Na₂O','MgO','T','Time (h)','CS','DOL'], rows:[['Glass A','','','','','','',700,45]] }),
+     o('پر شود ولی با علامت «استنتاج‌شده»', 'مثل گزینه‌ی اول، اما سلول‌هایی که از بخش دیگری آمده‌اند علامت می‌خورند تا کاربر بازبینی کند.',
+       'تعادل بین کامل‌بودن و اطمینان است. یک نشانگر یا ستون اضافه لازم می‌شود.') ]}],
+   reveals:'ردیف از چه منابعی ساخته می‌شود (فقط جدول یا کل مقاله)، و اینکه آیا برای هر سلول باید منبعش نمایش داده شود.' },
+
+ /* 3 */
+ { title:'تبادل دومرحله‌ای', prio:true, tags:[R,T],
+   sit:'بعضی نمونه‌ها در دو مرحله تبادل یونی می‌شوند، یعنی دو نمک و دو دما و دو زمان. ستون‌های ساده‌ی «یون، دما، زمان» برای این حالت کافی نیستند.',
+   bullets:[['مقاله‌ی P3','<span class="ltr">Sample S5: 4 h in KNO₃ at 410°C, then 1 h in NaNO₃ at 380°C. CS = 810 MPa, DOL = 38 µm.</span>']],
+   q:'این نمونه چگونه در جدول بنشیند؟',
+   groups:[{ opts:[
+     o('یک ردیف؛ ستون‌های جدا برای هر مرحله', 'ستون‌های مرحله‌ی ۱ و مرحله‌ی ۲ جداگانه تعریف می‌شوند.',
+       'دقیق است و می‌توان روی دما و زمان فیلتر کرد. ولی ستون‌ها زیاد می‌شوند و برای نمونه‌های تک‌مرحله‌ای نیمی از آن‌ها خالی است.',
+       { head:['Sample','step1_ion','step1_T','step1_h','step2_ion','step2_T','step2_h','CS','DOL'], rows:[['S5','KNO₃',410,4,'NaNO₃',380,1,810,38]] }),
+     o('یک ردیف؛ یک ستون متنی برای کل فرایند', 'کل فرایند به‌صورت یک عبارت متنی ثبت می‌شود.',
+       'ساده است ولی نمی‌توان روی دما یا زمان محاسبه یا فیلتر عددی کرد.',
+       { head:['Sample','process','CS','DOL'], rows:[['S5','KNO3 410C 4h → NaNO3 380C 1h',810,38]] }),
+     o('دو ردیف؛ هر مرحله یک ردیف', 'مرحله‌ها دو ردیف جدا می‌شوند و CS و DOL روی ردیف آخر می‌نشینند.',
+       'با قاعده‌ی «هر ردیف یک مرحله» می‌خواند، ولی CS نتیجه‌ی کل فرایند است و روی ردیف آخر بودنش می‌تواند گمراه‌کننده باشد.',
+       { head:['Sample','Ion','T','Time (h)','CS','DOL'], rows:[['S5','KNO₃',410,4,'',''],['S5','NaNO₃',380,1,810,38]] }),
+     o('خارج از محدوده‌ی نسخه‌ی اول', 'نمونه‌های چندمرحله‌ای در جدول نمی‌آیند و سیستم فقط گزارش می‌کند که چنین مواردی پیدا شده است.',
+       'نسخه‌ی اول ساده‌تر می‌شود ولی بخشی از داده‌ی مقاله‌ها از دست می‌رود.') ]}],
+   reveals:'کدام مشخصات هویت ردیف را می‌سازند و اینکه نسخه‌ی اول چه حالت‌های پیچیده‌ای را باید پوشش دهد.' },
+
+ /* 4 */
+ { title:'یک رکورد در دو مقاله', prio:true, tags:[R,T],
+   sit:'مقاله‌ی P4 در بخش مقایسه، نتیجه‌ی مقاله‌ی P1 را نقل کرده است (با کمی تفاوت عددی). کاربر هر دو مقاله را بارگذاری کرده، پس همان آزمایش دو بار دیده می‌شود.',
+   table:{ head:['Source','Glass','Ion','T (°C)','Time (h)','CS (MPa)'], rows:[['P1, Table 2','G1','KNO₃',430,4,610],['P4, Table 5 (cites P1)','G1','KNO₃',430,4,612]], cap:'همان آزمایش در دو مقاله' },
+   q:'در جدول نهایی چند ردیف و با چه مقداری بیاید؟',
+   groups:[{ opts:[
+     o('یک ردیف؛ هر دو منبع و هر دو عدد ثبت شود', 'ردیف‌ها ادغام می‌شوند و اختلاف عددی در همان سلول یا کنار آن نمایش داده می‌شود.',
+       'هیچ اطلاعاتی گم نمی‌شود ولی ساختار سلول‌ها پیچیده‌تر می‌شود.',
+       { head:['Glass','Ion','T','Time (h)','CS','sources'], rows:[['G1','KNO₃',430,4,'610 (P1) / 612 (P4)','P1, P4']] }),
+     o('دو ردیف؛ هر مقاله ردیف خودش', 'هر سند ردیف خودش را دارد و ادغامی انجام نمی‌شود.',
+       'ساده‌ترین حالت است ولی یک آزمایش دو بار در جدول است و در تحلیل نتایج دوباره‌شماری ایجاد می‌کند.',
+       { head:['Glass','Ion','T','Time (h)','CS','source'], rows:[['G1','KNO₃',430,4,610,'P1'],['G1','KNO₃',430,4,612,'P4']] }),
+     o('یک ردیف؛ فقط مقاله‌ی اصلی', 'نتیجه‌ی نقل‌شده نادیده گرفته می‌شود و فقط مقاله‌ای که آزمایش را انجام داده معتبر است.',
+       'نیاز دارد سیستم تشخیص دهد کدام مقاله منبع اصلی و کدام نقل‌کننده است، که همیشه آسان نیست.',
+       { head:['Glass','Ion','T','Time (h)','CS','source'], rows:[['G1','KNO₃',430,4,610,'P1']] }),
+     o('یک ردیف با مقدار منبع اصلی و یادداشت تعارض', 'مقدار P1 ثبت می‌شود و کنار آن علامت می‌خورد که مقاله‌ی دیگری عدد متفاوتی داده است.',
+       'تعادل ساده و شفاف، ولی باید محل نمایش یادداشت در جدول و خروجی تعیین شود.') ]}],
+   reveals:'آیا ردیف‌ها بین مقاله‌ها ادغام می‌شوند، قاعده‌ی حل اختلاف بین اعداد، و آیا باید بین «نتیجه‌ی خود مقاله» و «نقل از دیگران» فرق گذاشت.' },
+
+ /* 5 */
+ { title:'مقدارِ یک ردیف از دو سند مختلف', prio:true, tags:[R],
+   sit:'ممکن است مقاله‌ای نمونه‌ای را تعریف کند و مقاله‌ی بعدی (از همان گروه) عدد CS همان نمونه را بدهد. اگر هر ردیف فقط از یک سند ساخته شود، CS این ردیف خالی می‌ماند. اگر از چند سند بتوان ساخت، سیستم باید ارجاع‌های بین مقاله‌ها را بفهمد.',
+   bullets:[['P2','<span class="ltr">Glass B, NaNO₃→KNO₃, 400°C, 6 h</span> (اندازه‌گیری CS ندارد)'],
+            ['P5','<span class="ltr">Glass B, previously described in [P2], under the same conditions had CS = 590 MPa</span>']],
+   q:'ستون CS برای Glass B پر شود؟',
+   groups:[{ opts:[
+     o('بله؛ ردیف از چند سند کامل می‌شود', 'سیستم می‌فهمد P5 درباره‌ی همان Glass B در P2 حرف می‌زند و عدد را به ردیف اضافه می‌کند.',
+       'کامل‌ترین جدول را می‌دهد ولی سخت‌ترین حالت برای نوشتن است، چون باید ارجاع‌های بین مقاله‌ها درست تشخیص داده شوند.',
+       { head:['Glass','Ion','T','Time (h)','CS','sources'], rows:[['Glass B','NaNO₃→KNO₃',400,6,590,'P2, P5']] }),
+     o('نه؛ هر ردیف همه‌ی داده‌اش را از یک سند می‌گیرد', 'ردیف فقط از مقاله‌ای ساخته می‌شود که ردیف را تعریف کرده است.',
+       'ساده و قابل‌اعتماد است ولی داده‌هایی که در مقاله‌ی دیگر آمده‌اند استفاده نمی‌شوند.',
+       { head:['Glass','Ion','T','Time (h)','CS','source'], rows:[['Glass B','NaNO₃→KNO₃',400,6,'','P2']] }),
+     o('بله، ولی فقط وقتی ارجاع صریح در متن باشد', 'فقط وقتی مقاله به‌صراحت می‌گوید «همان نمونه‌ی مقاله‌ی دیگر»، ردیف‌ها وصل می‌شوند.',
+       'محتاطانه‌تر از گزینه‌ی اول است. ولی هنوز تشخیص ارجاع لازم است و موارد بدون ارجاع صریح از دست می‌روند.') ]}],
+   reveals:'اینکه ردیف‌ها به یک سند وابسته‌اند یا نه. این مهم‌ترین سناریو برای طراحی جست‌وجو و ادغام اطلاعات بین چند سند است.' },
+
+ /* 6 */
+ { title:'واحدها و قالب‌های مقدار', tags:[T,R],
+   sit:'مقاله‌های مختلف یک کمیت را با واحدها و قالب‌های متفاوت گزارش می‌کنند: GPa به جای MPa، کلوین به جای سانتی‌گراد، بازه، تقریب، حد بالا و حتی کلمه. ستون‌های جدول چه شکلی داشته باشند تا بتوان اعداد را کنار هم گذاشت؟',
+   table:{ head:['Paper','Composition','CS','Time','Temp'], rows:[
+     ['P1','Na₂O 14 wt%','610 MPa','4 h','430 °C'],
+     ['P2','Na₂O 15.2 mol%','0.58 GPa','240 min','703 K'],
+     ['P3','Na₂O 13–15 wt%','≈ 600 MPa','overnight','about 400 °C'],
+     ['P4','Na₂O 14 ± 0.3 wt%','> 700 MPa','8 h','420 ± 5 °C'] ], cap:'یک کمیت در چهار مقاله' },
+   q:'در خروجی چه نوشته شود؟',
+   groups:[
+     { label:'الف) واحدها', opts:[
+       o('همه به واحد استاندارد تبدیل شوند', 'مثلاً همه‌ی فشارها به MPa، زمان‌ها به دقیقه و دماها به °C. مقدار و واحد اصلی مقاله در ستون جدا می‌ماند.',
+         'اعداد مستقیم قابل مقایسه‌اند ولی تبدیل‌ها (مثل mol% به wt%) محاسبه‌ی شیمیایی می‌خواهند و خطا ممکن است.',
+         { head:['Paper','CS (MPa)','Time (min)','T (°C)','original'], rows:[['P1',610,240,430,'610 MPa; 4 h; 430 °C'],['P2',580,240,430,'0.58 GPa; 240 min; 703 K']] }),
+       o('مقدار همان‌طور که در مقاله آمده با ستون واحد', 'بدون هیچ تبدیل، هر مقدار با واحد خودش ثبت می‌شود.',
+         'خطای تبدیل ندارد ولی کاربر خودش باید قبل از تحلیل واحدها را یکی کند.',
+         { head:['Paper','CS','CS_unit','Temp','Temp_unit'], rows:[['P1',610,'MPa',430,'°C'],['P2',0.58,'GPa',703,'K']] }),
+       o('تبدیل فقط وقتی بدون ابهام است', 'تبدیل‌های ساده (GPa↔MPa، K↔°C، ساعت↔دقیقه) انجام می‌شود، ولی تبدیل mol% و wt% انجام نمی‌شود.',
+         'میانه‌ی دو حالت است ولی ستون ترکیب همچنان واحدهای ناهمگون خواهد داشت.') ]},
+     { label:'ب) مقدارهای غیرقطعی (بازه، تقریب، حد بالا، کلمه)', opts:[
+       o('یک عدد در سلول', 'برای بازه وسط آن و برای تقریب خود عدد ثبت می‌شود. کلمه‌ای مثل overnight عدد نمی‌شود و خالی می‌ماند.',
+         'ستون‌ها تمیز و عددی‌اند ولی ابهام اصلی مقدار پنهان می‌شود (۱۳–۱۵ با ۱۴ یکسان دیده می‌شود).',
+         { head:['Composition','CS','Time'], rows:[['Na₂O 14',600,''],['Na₂O 13–15 → 14',700,'']] }),
+       o('متن خام نگه داشته شود', 'همان نوشته‌ی مقاله (مثل «۱۳–۱۵» یا «≈600») در سلول می‌ماند.',
+         'هیچ اطلاعاتی تغییر نمی‌کند ولی ستون عددی نیست و تحلیل مستقیم ممکن نیست.',
+         { head:['Composition','CS','Time'], rows:[['Na₂O 13–15','≈ 600','overnight']] }),
+       o('سه ستون: کمینه، بیشینه و توضیح', 'برای هر کمیت غیرقطعی ستون‌های min، max و qualifier (مثل ≈ یا >) ساخته می‌شود.',
+         'دقیق‌ترین شکل است ولی تعداد ستون‌ها چند برابر می‌شود.',
+         { head:['CS_min','CS_max','CS_qualifier'], rows:[[600,600,'≈'],[700,'','>']] }),
+       o('مقدارهای غیرقطعی ثبت نشوند', 'فقط اعداد دقیق وارد جدول می‌شوند و بقیه سلول خالی می‌گیرند.',
+         'ساده و بدون ابهام است ولی بخش مهمی از داده کنار گذاشته می‌شود.') ]} ],
+   reveals:'نوع و واحد هر ستون در تعریف جدول، اینکه نرمال‌سازی واحدها وظیفه‌ی سیستم است یا کاربر، و اینکه نیاز به ستونی برای «میزان قطعیت مقدار» هست یا نه.' },
+
+ /* 7 */
+ { title:'فیلد هویتی گمشده', prio:true, tags:[R,T],
+   sit:'هویت ردیف در پروژه‌ی ما از چند مشخصه ساخته می‌شود (ترکیب، یون، دما، زمان). گاهی مقاله یکی از آنها را ننوشته است. این‌جا باید تصمیم بگیریم چنین ردیفی ساخته شود یا نه و چگونه.',
+   bullets:[['مقاله‌ی P2','<span class="ltr">Glass C reached CS = 650 MPa after ion exchange in KNO₃.</span> (نه دما ذکر شده، نه زمان)'],
+            ['نکته','ممکن است در بخش Methods برای همه‌ی نمونه‌ها یک «شرایط استاندارد» نوشته شده باشد.']],
+   q:'با این ردیف چه شود؟',
+   groups:[{ opts:[
+     o('ردیف ساخته شود، دما و زمان خالی', 'مقادیر معلوم ثبت می‌شوند و بقیه‌ی سلول‌ها خالی می‌مانند.',
+       'هیچ داده‌ای از دست نمی‌رود ولی ممکن است ردیف‌های ناقص و تکراری زیاد شوند.',
+       { head:['Glass','Ion','T','Time','CS'], rows:[['Glass C','KNO₃','','',650]] }),
+     o('ردیف ساخته شود ولی «ناقص» علامت بخورد', 'مثل گزینه‌ی اول، ولی کاربر باید آن را بازبینی و تأیید کند.',
+       'کنترل بهتری روی کیفیت می‌دهد ولی بار بازبینی دستی اضافه می‌شود.'),
+     o('ردیف ساخته نشود', 'ردیفی که همه‌ی مشخصات هویتی‌اش معلوم نباشد در جدول نمی‌آید.',
+       'جدول تمیز می‌ماند ولی بخشی از داده بی‌صدا حذف می‌شود، مگر اینکه فهرست حذف‌شده‌ها نمایش داده شود.'),
+     o('از «شرایط استاندارد» بخش Methods پر شود', 'سیستم دما و زمان را از شرایط عمومی نوشته‌شده در مقاله می‌گیرد.',
+       'ردیف کامل‌تر می‌شود ولی ممکن است برای نمونه‌ای که شرایطش فرق داشته غلط باشد.') ]}],
+   reveals:'کدام مشخصه‌ها «اجباری» هستند و کدام «اختیاری»، و اینکه ردیف ناقص نگه داشته شود یا حذف.' },
+
+ /* 8 */
+ { title:'مقدار فقط در نمودار', tags:[T],
+   sit:'گاهی مقدار مورد نظر در جدول نیست و فقط در یک نمودار آمده است، و در متن فقط یک عدد تقریبی نوشته شده است.',
+   bullets:[['مقاله‌ی P3','نمودار concentration profile برای Glass D، و در متن: <span class="ltr">the depth of layer is about 40 µm</span>']],
+   q:'ستون DOL_um برای Glass D چه شود؟',
+   groups:[{ opts:[
+     o('از متن: ۴۰', 'عدد تقریبی متن ثبت می‌شود.', 'ساده است ولی «حدود ۴۰» به‌عنوان عدد دقیق دیده می‌شود، مگر اینکه علامت تقریبی بخورد.'),
+     o('خالی بماند', 'فقط مقدارهای دقیق جدولی و متنی ثبت می‌شوند و عدد تقریبی یا نموداری نه.', 'مطمئن است ولی داده‌ی مفید از دست می‌رود.'),
+     o('از روی نمودار خوانده شود', 'سیستم عدد را از روی تصویر نمودار تخمین می‌زند و علامت «تخمینی» می‌خورد.',
+       'کامل‌ترین حالت است ولی دقت پایین‌تر است و خواندن نمودار نیاز به قابلیت جداگانه دارد.') ]}],
+   reveals:'محدوده‌ی منابع داده (جدول، متن، شکل‌ها) و اینکه عدد تقریبی مثل «حدود ۴۰» قابل ثبت است یا نه.' },
+
+ /* 9 */
+ { title:'تعارض داخل یک سند', tags:[T],
+   sit:'در یک مقاله ممکن است یک کمیت در چند جا با اعداد متفاوت آمده باشد. مثلاً abstract یک عدد را گرد کرده، جدول عدد دقیق دارد و متن نتایج چیز دیگری می‌گوید.',
+   bullets:[['Abstract','<span class="ltr">CS increased up to 650 MPa</span>'],
+            ['جدول ۲','<span class="ltr">G1, 430°C, 4 h → CS = 610</span>'],
+            ['متن نتایج','<span class="ltr">maximum CS was 630 MPa</span>']],
+   q:'کدام مقدار در سلول بنشیند؟',
+   groups:[{ opts:[
+     o('جدول همیشه ارجحیت دارد', 'اگر عددی در جدول باشد، متن و abstract نادیده گرفته می‌شوند. اینجا ۶۱۰.', 'قاعده‌ی ثابت و ساده است ولی گاهی جدول اشتباه یا ناقص است.'),
+     o('تعارض علامت بخورد و کاربر انتخاب کند', 'سیستم اعداد مختلف را به کاربر نشان می‌دهد تا خودش تصمیم بگیرد.', 'امن‌ترین حالت است ولی بار بازبینی کاربر بیشتر می‌شود و رابط کاربری برای نمایش تعارض لازم است.'),
+     o('همه‌ی مقادیر با منبع در یک سلول', 'مثلاً «۶۱۰ (جدول ۲) / ۶۳۰ (متن) / ۶۵۰ (abstract)».', 'هیچ اطلاعاتی گم نمی‌شود ولی سلول عددی نیست.'),
+     o('مقدار نزدیک‌تر به شرایط ردیف', 'سیستم عددی را انتخاب می‌کند که به همان دما و زمان ردیف مربوط است. اینجا ۶۱۰.', 'هوشمندانه است ولی تشخیصش سخت‌تر و خطاپذیرتر از «جدول ارجحیت دارد» است.') ]}],
+   reveals:'اولویت منابع داخل یک سند (جدول، متن، چکیده) و اینکه رابط کاربری باید تعارض را نشان بدهد.' },
+
+ /* 10 */
+ { title:'تعریف مبهم ستون توسط کاربر', tags:[T],
+   sit:'کاربران عادی اغلب جدول را با زبان روزمره و مبهم توضیح می‌دهند. سیستم باید از روی همین توضیح فهرست ستون‌ها را بسازد. هرچه توضیح مبهم‌تر باشد، احتمال اینکه ستون‌ها با خواسته‌ی کاربر نخواند بیشتر است.',
+   bullets:[['توضیح کاربر','«می‌خواهم برای هر شیشه، ترکیبش، شرایط تبادل و مقاومتش را ببینم.»'],
+            ['ابهام ۱','«مقاومتش»: تنش فشاری سطح (CS)، استحکام خمشی، سختی یا همه؟'],
+            ['ابهام ۲','«ترکیبش»: هر اکسید یک ستون جدا یا یک ستون متنی؟'],
+            ['ابهام ۳','«شرایط تبادل»: دما، زمان، نوع نمک، غلظت یا همه؟']],
+   q:'سیستم با این توضیح مبهم چه کند؟',
+   groups:[{ opts:[
+     o('بهترین حدس را بزند، کاربر ویرایش کند', 'سیستم فوراً یک پیش‌نویس کامل پیشنهاد می‌دهد و کاربر ستون‌های اشتباه را اصلاح می‌کند.',
+       'سریع و ساده برای کاربر است ولی اگر حدس دور از واقعیت باشد، کاربر باید زیاد ویرایش کند.',
+       { head:['Glass','SiO₂','Al₂O₃','Na₂O','Ion','T','Time','CS'], rows:[['پیش‌نویس پیشنهادی','','','','','','','']] }),
+     o('اول چند سؤال شفاف‌ساز بپرسد', 'قبل از ساخت پیش‌نویس می‌پرسد: مقاومت یعنی چه؟ ترکیب چطور ثبت شود؟ و ...',
+       'پیش‌نویس دقیق‌تر می‌شود ولی کاربر باید قبل از دیدن هر نتیجه به سؤال‌ها جواب بدهد.'),
+     o('یک قالب استاندارد حوزه پیشنهاد دهد', 'برای حوزه‌ی شیشه و تبادل یونی یک جدول آماده (مثل جدول مرجع با ۳۳ ستون) پیشنهاد می‌شود و کاربر ستون‌های اضافه را حذف می‌کند.',
+       'برای این حوزه بسیار دقیق است ولی برای حوزه‌های دیگر قالب جدا لازم دارد.') ]}],
+   reveals:'میزان تعامل سیستم با کاربر در ساخت جدول، و اینکه قالب‌های آماده‌ی حوزه‌محور نیاز داریم یا نه.' },
+
+ /* 11 */
+ { title:'ردیف‌های زیاد و فقط بخشی مرتبط', tags:[R,T],
+   sit:'جدول یک مقاله ممکن است ردیف‌های زیادی داشته باشد که فقط بخشی از آنها به نیاز کاربر مربوط است. باید روشن شود چه کسی و چگونه مشخص می‌کند کدام ردیف‌ها وارد جدول شوند.',
+   bullets:[['مقاله‌ی P4','جدولی با ۴۰ ترکیب شیشه. کاربر فقط به شیشه‌های آلومینوسیلیکات سدیم‌دار علاقه دارد (تقریباً ۶ مورد).']],
+   q:'ردیف‌های نامرتبط چه شوند؟',
+   groups:[{ opts:[
+     o('همه‌ی ۴۰ ردیف ثبت شود', 'سیستم فیلتر نمی‌کند و کاربر بعداً در Excel یا CSV خودش فیلتر می‌کند.', 'ساده‌ترین حالت است ولی جدول شلوغ می‌شود و هزینه‌ی استخراج همه‌ی ۴۰ ردیف پرداخت می‌شود.'),
+     o('کاربر شرط شمول می‌نویسد', 'هنگام تعریف جدول، کاربر شرطی مثل «فقط ترکیب‌های حاوی Na₂O و Al₂O₃» را می‌نویسد.', 'جدول تمیز و کوچک می‌شود ولی سیستم باید شرط را بفهمد و روی هر ردیف بسنجد.'),
+     o('کاربر فهرست دقیق ردیف‌ها را می‌دهد', 'کاربر نام ردیف‌های مورد نظر را می‌نویسد و بقیه نادیده گرفته می‌شود.', 'دقیق‌ترین حالت است ولی کاربر باید از پیش بداند چه ردیف‌هایی در مقاله‌ها هست.') ]}],
+   reveals:'ردیف‌ها خودکار پیدا شوند یا از فهرست کاربر بیایند، و اینکه تعریف جدول باید «شرط انتخاب ردیف» را هم پشتیبانی کند.' },
+
+ /* 12 */
+ { title:'افزودن سند جدید بعد از ساخت جدول', tags:[T],
+   sit:'کاربر جدول را از ۴ مقاله ساخته و ۳ سلول را دستی اصلاح کرده است. حالا مقاله‌ی پنجم را اضافه می‌کند. این مقاله دو ردیف جدید دارد و برای یکی از ردیف‌های موجود عدد متفاوتی می‌دهد.',
+   q:'سیستم چه کند؟',
+   groups:[{ opts:[
+     o('همه‌چیز از صفر دوباره ساخته شود', 'جدول با ۵ مقاله از ابتدا ساخته می‌شود.', 'ساده است ولی ویرایش‌های دستی کاربر از بین می‌رود.'),
+     o('فقط ردیف‌های جدید اضافه شوند', 'ردیف‌های موجود، به‌خصوص ویرایش‌شده‌ها، دست‌نخورده می‌مانند.', 'کار کاربر حفظ می‌شود ولی عدد متفاوت مقاله‌ی جدید برای ردیف موجود نادیده گرفته می‌شود.'),
+     o('ردیف‌های جدید اضافه و تعارض‌ها علامت‌گذاری شوند', 'ردیف‌های جدید اضافه می‌شوند و جایی که مقاله‌ی جدید با ویرایش کاربر یا مقدار قبلی نمی‌خواند، برای تصمیم کاربر علامت می‌خورد.', 'کامل‌ترین حالت است ولی پیاده‌سازی پیچیده‌تری دارد.'),
+     o('ویرایش دستی ممکن است ولی ذخیره‌ی دائمی ندارد', 'کاربر هر بار جدول را اجرا می‌کند، سلول‌ها را اصلاح و خروجی را می‌گیرد. اصلاحات بعدی ذخیره نمی‌شود.', 'پیاده‌سازی ساده است ولی کاربر باید اصلاحات را هر بار تکرار کند.') ]}],
+   reveals:'جدول بعد از ساخته‌شدن چه سرنوشتی دارد: ذخیره می‌شود، ویرایش‌هایش حفظ می‌شوند و می‌تواند به‌روز شود یا نه.' }
+];
+
+document.documentElement.setAttribute('dir', 'rtl');
+document.documentElement.setAttribute('lang', 'fa');
+
+/* Isolate Latin runs (names, units, formulas, arrows) so they keep their own order inside Persian sentences */
+const LT = '[A-Za-z0-9\\u2080-\\u2089\\u00b5\\u00b0]';
+const TOK = LT + '(?:[A-Za-z0-9\\u2080-\\u2089\\u00b5\\u00b0_.%+\\-/]*[A-Za-z0-9\\u2080-\\u2089\\u00b5\\u00b0%])?';
+const RUN = new RegExp(TOK + '(?:(?:\\s*[\\u2192\\u2248><\\u00b1=+,:]\\s*|\\s+)' + TOK + ')*', 'g');
+function H(html) {
+  return String(html).replace(/(<span class="ltr">[\s\S]*?<\/span>)|(<[^>]+>)|([^<]+)/g, (m, a, b, c) =>
+    c !== undefined ? c.replace(RUN, r => '<bdi dir="ltr">' + r + '</bdi>') : m);
+}
+const iso = t => String(t).replace(RUN, r => '⁦' + r + '⁩');
+
+const fa = n => Number(n).toLocaleString('fa-IR');
+const LK = ['A','B','C','D'];
+const KEY = 'tbl-scenarios-v1';
+let st = { a:{}, n:{} };
+try { const r = localStorage.getItem(KEY); if (r) st = JSON.parse(r) || st; } catch(e) {}
+st.a = st.a || {}; st.n = st.n || {};
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function tableHtml(t, sm) {
+  return '<div class="tbl-wrap' + (sm ? ' sm' : '') + '"><table><thead><tr>' + t.head.map(h => '<th>' + esc(h) + '</th>').join('') +
+    '</tr></thead><tbody>' + t.rows.map(r => '<tr>' + r.map(c => '<td>' + (c === '' ? '—' : esc(c)) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>';
+}
+
+function render() {
+  const list = document.getElementById('list');
+  list.innerHTML = S.map((s, i) => {
+    const id = 's' + i;
+    const tags = (s.prio ? '<span class="chip prio">اولویت بالا</span>' : '') + s.tags.map(t => '<span class="chip">' + t + '</span>').join('');
+    const bullets = s.bullets ? '<ul class="src">' + s.bullets.map(b => '<li><b>' + H(b[0]) + ':</b> ' + H(b[1]) + '</li>').join('') + '</ul>' : '';
+    const data = (s.table || s.bullets)
+      ? '<span class="lbl">داده‌ی نمونه (ساختگی)' + (s.table && s.table.cap ? ': ' + H(s.table.cap) : '') + '</span>' + (s.table ? tableHtml(s.table) : '') + bullets
+      : '';
+    const groups = s.groups.map((g, gi) => {
+      const name = id + '_g' + gi;
+      const cur = (st.a[id] || {})['g' + gi];
+      return (g.label ? '<div class="glabel">' + H(g.label) + '</div>' : '') +
+        '<div class="opts" role="radiogroup">' + g.opts.map((op, oi) =>
+          '<label class="opt"><input type="radio" name="' + name + '" value="' + LK[oi] + '" data-s="' + i + '" data-g="' + gi + '"' + (cur === LK[oi] ? ' checked' : '') +
+          '><span class="opt-body"><span class="k">' + LK[oi] + '</span><span class="opt-text"><span class="ot-title">' + H(op.t) + '</span>' +
+          '<span class="ot-d">' + H(op.d) + '</span>' + (op.tbl ? tableHtml(op.tbl, true) : '') +
+          (op.note ? '<span class="ot-note">' + H(op.note) + '</span>' : '') + '</span></span></label>'
+        ).join('') +
+        '<label class="opt opt-x"><input type="radio" name="' + name + '" value="X" data-s="' + i + '" data-g="' + gi + '"' + (cur === 'X' ? ' checked' : '') +
+        '><span class="opt-body"><span class="k">؟</span><span class="opt-text"><span class="ot-title">نیاز به بررسی بیشتر یا تصمیم در جلسه‌ی بعد</span></span></span></label></div>';
+    }).join('');
+    return '<section class="sc" id="' + id + '"><div class="sc-head"><span class="sc-no">سناریو ' + fa(i + 1) + '</span><h2>' + s.title + '</h2></div>' +
+      '<div class="tags">' + tags + '</div><p class="sit"><b>موقعیت:</b> ' + H(s.sit) + '</p>' + data +
+      '<div class="q">' + H(s.q) + '</div>' + groups +
+      '<label class="note" for="' + id + '_n">یادداشت، گزینه‌ی ترکیبی یا پاسخ دیگر</label><textarea id="' + id + '_n" data-s="' + i + '" placeholder="تصمیم PO، شرط یا استثنا..."></textarea>' +
+      '<button class="clear" type="button" data-clear="' + i + '">پاک‌کردن پاسخ این سناریو</button>' +
+      '<div class="reveals"><b>چرا این را می‌پرسیم:</b> ' + H(s.reveals) + '</div></section>';
+  }).join('');
+  list.querySelectorAll('textarea').forEach(t => { t.value = st.n['s' + t.dataset.s] || ''; });
+  document.getElementById('nav').innerHTML = S.map((s, i) => '<a href="#s' + i + '" id="nv' + i + '" title="' + esc(s.title) + '">' + fa(i + 1) + '</a>').join('');
+  update();
+}
+
+function isDone(i) {
+  const a = st.a['s' + i] || {};
+  return S[i].groups.every((g, gi) => a['g' + gi]);
+}
+function update() {
+  let done = 0;
+  S.forEach((s, i) => { const d = isDone(i); if (d) done++; document.getElementById('nv' + i).classList.toggle('done', d); });
+  document.getElementById('barfill').style.width = (done / S.length * 100) + '%';
+  document.getElementById('progtxt').textContent = fa(done) + ' از ' + fa(S.length);
+}
+
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.matches('input[type=radio]')) {
+    const id = 's' + t.dataset.s;
+    st.a[id] = st.a[id] || {};
+    st.a[id]['g' + t.dataset.g] = t.value;
+    save(); update();
+  }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.matches('textarea[data-s]')) { st.n['s' + t.dataset.s] = t.value; save(); }
+});
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-clear]');
+  if (c) {
+    const id = 's' + c.dataset.clear;
+    delete st.a[id]; delete st.n[id]; save(); render();
+    const el = document.getElementById(id); if (el) el.scrollIntoView({ block:'start' });
+  }
+});
+
+function summary() {
+  const lines = ['خلاصه‌ی تصمیم‌ها: سناریوهای مرزی استخراج جدول', ''];
+  let open = 0;
+  S.forEach((s, i) => {
+    const id = 's' + i, a = st.a[id] || {}, note = (st.n[id] || '').trim();
+    lines.push('سناریو ' + fa(i + 1) + ' (' + s.title + ')');
+    s.groups.forEach((g, gi) => {
+      const k = a['g' + gi];
+      const label = g.label ? g.label + ': ' : '';
+      let txt;
+      if (!k) { txt = label + 'پاسخ داده نشده'; open++; }
+      else if (k === 'X') { txt = label + 'نیاز به بررسی بیشتر'; open++; }
+      else txt = label + 'گزینه ' + k + ': ' + g.opts[LK.indexOf(k)].t;
+      lines.push('  ' + iso(txt));
+    });
+    if (note) lines.push('  یادداشت: ' + iso(note));
+    lines.push('');
+  });
+  lines.push('موارد باز یا نیازمند بررسی بیشتر: ' + fa(open));
+  return lines.join('\n');
+}
+const out = document.getElementById('out'), msg = document.getElementById('msg');
+const say = t => { msg.textContent = t; setTimeout(() => { if (msg.textContent === t) msg.textContent = ''; }, 3500); };
+document.getElementById('gen').addEventListener('click', () => { out.value = summary(); out.scrollIntoView({ block:'nearest' }); });
+document.getElementById('copy').addEventListener('click', async () => {
+  out.value = summary();
+  try { await navigator.clipboard.writeText(out.value); say('کپی شد'); }
+  catch (e) { out.focus(); out.select(); say('متن انتخاب شد؛ با Ctrl+C کپی کن'); }
+});
+const rs = document.getElementById('reset');
+let armed = false, timer;
+rs.addEventListener('click', () => {
+  if (!armed) {
+    armed = true; rs.textContent = 'مطمئنی؟ دوباره بزن'; timer = setTimeout(() => { armed = false; rs.textContent = 'پاک‌کردن همه‌ی پاسخ‌ها'; }, 4000);
+    return;
+  }
+  clearTimeout(timer); armed = false; rs.textContent = 'پاک‌کردن همه‌ی پاسخ‌ها';
+  st = { a:{}, n:{} }; save(); out.value = ''; render(); say('همه‌ی پاسخ‌ها پاک شد');
+});
+
+render();
+</script>
+
+</body>
+</html>
